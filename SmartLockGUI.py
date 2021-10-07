@@ -6,9 +6,16 @@ from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 
 import os
+import MFRC522
+import RPi.GPIO as GPIO
+
 
 os.environ["KIVY_WINDOW"] = "egl_rpi"
 os.environ["KIVY_GL_BACKEND"] = "gl"
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(18,GPIO.OUT)
 
 screen_helper="""
 
@@ -180,6 +187,25 @@ def change_screen(self,screen_name):
     self.manager.current = screen_name
 
 class HomeScreen(Screen):
+
+    def readNFC(self,dt):
+        MIFAREReader = MFRC522.MFRC522()
+
+        (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
+
+        (status,uid) = MIFAREReader.MFRC522_Anticoll()
+
+        if status == MIFAREReader.MI_OK:
+            if str(uid[0])+str(uid[1])+str(uid[2])+str(uid[3]) == '23119016145':
+                GPIO.output(18,1)
+                change_screen(self,'open') 
+
+    def on_enter(self, *args):
+        Clock.schedule_interval(self.readNFC, 1)
+
+    def on_leave(self, *args):
+        Clock.unschedule(self.readNFC)
+
     pass
 
 class PinCodeScreen(Screen):
@@ -214,7 +240,8 @@ class LockerOpenScreen(Screen):
         Clock.schedule_once(self.callbackfun, 5)
 
     def callbackfun(self, dt):
-        self.manager.current = 'code PIN'
+        GPIO.output(18,0)
+        self.manager.current = 'home'
     
     pass
 
