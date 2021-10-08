@@ -1,3 +1,4 @@
+from . import MFRC522
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
@@ -6,7 +7,6 @@ from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 
 import os
-import MFRC522
 import RPi.GPIO as GPIO
 
 
