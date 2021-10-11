@@ -193,6 +193,7 @@ def change_screen(self,screen_name):
 class HomeScreen(Screen):
 
     def readNFC(self,dt):
+        spi.openSPI()
         MIFAREReader = MFRC522.MFRC522()
 
         (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
