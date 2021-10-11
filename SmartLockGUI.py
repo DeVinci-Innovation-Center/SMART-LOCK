@@ -16,6 +16,8 @@ os.environ["KIVY_GL_BACKEND"] = "gl"
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(18,GPIO.OUT)
+time_inactive_PIN = 20
+time_open_screen = 5
 
 screen_helper="""
 
@@ -228,6 +230,12 @@ class PinCodeScreen(Screen):
         elif code != '':
             self.ids.stars.text = 'CODE INCORRECT'
 
+    def on_enter(self, *args):
+        Clock.schedule_once(self.callbackfun, time_inactive_PIN)
+
+    def callbackfun(self, dt):
+        self.manager.current = 'home'
+
     def on_leave(self, *args):
         self.ids.stars.text = ''
         self.manager.get_screen('code PIN').code = ''
@@ -237,7 +245,7 @@ class PinCodeScreen(Screen):
 class LockerOpenScreen(Screen):
 
     def on_enter(self, *args):
-        Clock.schedule_once(self.callbackfun, 5)
+        Clock.schedule_once(self.callbackfun, time_open_screen)
 
     def callbackfun(self, dt):
         GPIO.output(18,0)
