@@ -8,6 +8,7 @@ from kivymd.uix.label import MDLabel
 import MFRC522
 import os
 import RPi.GPIO as GPIO
+import spi
 
 
 os.environ["KIVY_WINDOW"] = "egl_rpi"
@@ -16,6 +17,7 @@ os.environ["KIVY_GL_BACKEND"] = "gl"
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(18,GPIO.OUT)
+
 time_inactive_PIN = 20
 time_open_screen = 5
 
@@ -200,7 +202,8 @@ class HomeScreen(Screen):
         if status == MIFAREReader.MI_OK:
             if str(uid[0])+str(uid[1])+str(uid[2])+str(uid[3]) == '23119016145':
                 GPIO.output(18,1)
-                change_screen(self,'open') 
+                change_screen(self,'open')
+        spi.closeSPI()
 
     def on_enter(self, *args):
         Clock.schedule_interval(self.readNFC, 1)
