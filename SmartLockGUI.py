@@ -223,7 +223,7 @@ class LockerOpenScreen(Screen):
         Clock.schedule_once(self.callbackfun, time_open_screen)
 
     def callbackfun(self, dt):
-        self.manager.current = 'code PIN'
+        self.manager.current = 'home'
     
     pass
 
