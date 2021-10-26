@@ -39,8 +39,76 @@ That's why we preferred use a micro-USB cable to power supply the raspberry.
 
 See : [https://thepihut.com/blogs/raspberry-pi-tutorials/how-do-i-power-my-raspberry-pi](https://thepihut.com/blogs/raspberry-pi-tutorials/how-do-i-power-my-raspberry-pi)
 
-## Software ##
-### Read RFID tags with RC522 ###
+## Software Setup
+
+
+The program is coded in Python and runs on startup, it is used to control the GPIO pins, to run the GUI and to access the database.
+The GUI uses [KivyMD](https://kivymd.readthedocs.io/en/latest/) which is based on [Kivy](https://kivy.org/#home).
+We use Raspberry Pi OS Lite with no desktop environment as we don't need one.
+
+### Touchscreen Setup
+
+If you use the same screen as us, at the end of /boot/config.txt add : 
+
+```
+max_usb_current=1
+hdmi_force_hotplug=1
+config_hdmi_boost=7
+hdmi_group=2
+hdmi_mode=87
+hdmi_drive=1
+display_rotate=0
+hdmi_cvt 1024 600 60 6 0 0 0
+```
+
+And if there is a low-voltage warning : 
+
+```
+avoid_warnings=2
+```
+
+### Dependencies Install
+
+This part is based on Kivy's installation instructions : <https://kivy.org/doc/stable/installation/installation-rpi.html>
+
+After connecting to your WiFi Network, update your RPi, install pip and git :
+
+```sudo apt update```
+
+```sudo apt install python3-setuptools git-core python3-dev```
+
+```sudo apt-get install git```
+
+Run : 
+
+```
+sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+   libgstreamer1.0-dev \
+   gstreamer1.0-plugins-{bad,base,good,ugly} \
+   gstreamer1.0-{omx,alsa} libmtdev-dev \
+   xclip xsel libjpeg-dev \
+   libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+```
+
+Install KivyMD (includes Kivy):
+
+```pip3 install kivymd```
+
+To enable the touchscreen in the GUI, edit ~/.kivy/config.ini, in [input] add : 
+
+```
+mouse = mouse
+mtdev_%(name)s = probesysfs,provider=mtdev
+hid_%(name)s = probesysfs,provider=hidinput
+```
+
+Since our interface is vertical and we want to hide the cursor, in [graphics] modify :
+
+```rotation=90```
+
+```show_cursor=0```
+
+You can now clone this repository and run SmartLockGUI.py.
 
 ### Program an API to communicate with a database server ###
 An Application Programming Interface (API) is a set of protocols that facilitate the communication between software applications. Here, our API will be added on the DVIC website in order to manage on back-end the management of the Database.
