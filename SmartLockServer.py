@@ -15,7 +15,7 @@ import RPi.GPIO as GPIO
 os.environ["KIVY_WINDOW"] = "egl_rpi"
 os.environ["KIVY_GL_BACKEND"] = "gl"
 
-locker = 1
+locker = 4
 correct_code = '123456'
 url_access = "https://dvic.devinci.fr/badge/access/%s/%s" #API website link to enter
 url_associate = "https://dvic.devinci.fr/badge/associate/%s"
@@ -33,6 +33,7 @@ ScreenManager:
     LockerOpenScreen:
     LockerUnauthorizedScreen:
     LockerUnknownScreen:
+    AssociateScreen:
     ConnectionFailedScreen:
 <HomeScreen>:
     name: 'home'
@@ -224,10 +225,13 @@ ScreenManager:
             pos_hint:{"center_x":0.5,"center_y":0.57}
 
         MDFillRoundFlatButton:
-        text:'ASSOCIATE'
-        font_size:36
-        pos_hint:{"center_x":0.5,"center_y":0.1}
-        on_press: root.manager.current='associate'
+            text:'ASSOCIATE'
+            font_size:36
+            theme_text_color: 'Custom'
+            text_color: [0,0,0,1]
+            md_bg_color: [1, 0.592156862745098, 0.592156862745098, 1]
+            pos_hint:{"center_x":0.5,"center_y":0.1}
+            on_press: root.manager.current='associate'
         
         MDIconButton:
             icon: 'shield-lock'
@@ -241,9 +245,10 @@ ScreenManager:
         md_bg_color: 1,1,1,1
 
         Image:
-        source: 'associate_qr_code.png'
-        size_hint: (0.4,0.4)
-        pos_hint: {"center_x":0.5,"center_y":0.5}
+            id: qr
+            source: 'associate_qr_code.png'
+            size_hint: (0.4,0.4)
+            pos_hint: {"center_x":0.5,"center_y":0.5}
 
         MDLabel:
             text:'Scannez le QR CODE en étant connecté sur le site du DVIC'
@@ -253,10 +258,10 @@ ScreenManager:
             pos_hint:{"center_x":0.5,"center_y":0.8}
 
         MDIconButton:
-        icon: 'chevron-left'
-        user_font_size: "110sp"
-        pos_hint: {"center_x":0.12,"center_y":0.9}
-        on_press : root.manager.current='home'
+            icon: 'chevron-left'
+            user_font_size: "110sp"
+            pos_hint: {"center_x":0.12,"center_y":0.9}
+            on_press : root.manager.current='home'
 <ConnectionFailedScreen>:
     name: 'connectionFailed'
     MDFloatLayout:
@@ -301,20 +306,26 @@ class HomeScreen(Screen):
 
         if status == MIFAREReader.MI_OK:
             badge= str(uid[0])+str(uid[1])+str(uid[2])+str(uid[3])
+            print(f'Requesting Access for {badge}')
             try:
                 response = requests.get(url_access % (badge,locker)).status_code
-                if (response ==200):
+                if response == 200:
                     GPIO.output(7,1)
                     change_screen(self,'open')
-                elif (response == 403):
+                elif response == 401:
                     change_screen(self,'unauthorized')
-                else:
+                elif response == 404:
+                    url = url_associate % (badge)
+                    print(url)
+                    img = qrcode.make(url)
+                    img.save("associate_qr_code.png")
                     change_screen(self, 'unknown')
+                else:
+                    change_screen(self,'connectionFailed')    
             except ConnectionError:
                 change_screen(self,'connectionFailed')
 
-            img = qrcode.make(url_associate % (badge))
-            img.save("associate_qr_code.png")
+            
 
     def on_enter(self, *args):
         Clock.schedule_interval(self.readNFC, 1)
@@ -340,6 +351,7 @@ class PinCodeScreen(Screen):
     def verifyCode(self,code):
         self.ids.stars.text = ''
         if code == '123456':
+            GPIO.output(7,1)
             change_screen(self,'open')
         elif code != '':
             self.ids.stars.text = 'CODE INCORRECT'
@@ -374,7 +386,7 @@ class LockerUnauthorizedScreen(Screen):
 class LockerUnknownScreen(Screen):
 
     def on_enter(self, *args):
-        Clock.schedule_once(self.callbackfun, 5)
+        Clock.schedule_once(self.callbackfun, 15)
 
     def callbackfun(self, dt):
         self.manager.current = 'home'
@@ -383,7 +395,9 @@ class LockerUnknownScreen(Screen):
 
 class AssociateScreen(Screen):
 
-    
+    def on_enter(self, *args):
+        self.ids.qr.reload()
+
     pass
 
 class ConnectionFailedScreen(Screen):
