@@ -18,7 +18,11 @@ correct_code = '123456'
 louis = 23119016145
 maxime = 166126147227
 valid = 153202119233
-unauthorized = 2493256233
+clement=17821622836
+yliess=14674168426
+brice=17914326254
+gregor=35109302544
+unauthorized =2493256233
 connectionfailed = 169164184176
 unknown = 11813522937
 
@@ -259,17 +263,21 @@ def change_screen(self,screen_name):
     self.manager.current = screen_name
 
 class HomeScreen(Screen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.MIFAREReader = MFRC522.MFRC522()
 
     def readNFC(self,dt):
-        MIFAREReader = MFRC522.MFRC522()
+        MIFAREReader = self.MIFAREReader
 
         (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
 
         (status,uid) = MIFAREReader.MFRC522_Anticoll()
 
         if status == MIFAREReader.MI_OK:
-            badge= str(uid[0])+str(uid[1])+str(uid[2])+str(uid[3])
-            if (badge == louis | badge == maxime | badge == valid):
+            badge= int(str(uid[0])+str(uid[1])+str(uid[2])+str(uid[3]))
+            print(f"Scanned badge : {badge}")
+            if ((badge == louis) | (badge == maxime) |(badge==clement)|(badge==brice)|(badge==gregor)|(badge==yliess)| (badge == valid)):
                 GPIO.output(7,1)
                 change_screen(self,'open')
             elif(badge == unauthorized):
@@ -306,7 +314,8 @@ class PinCodeScreen(Screen):
         
     def verifyCode(self,code):
         self.ids.stars.text = ''
-        if code == '123456':
+        if code == correct_code:
+            GPIO.output(7,1)
             change_screen(self,'open')
         elif code != '':
             self.ids.stars.text = 'CODE INCORRECT'
