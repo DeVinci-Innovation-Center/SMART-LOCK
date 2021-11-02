@@ -7,6 +7,7 @@ from kivymd.uix.label import MDLabel
 
 import MFRC522
 import os
+import qrcode
 import requests
 import RPi.GPIO as GPIO
 
@@ -16,7 +17,8 @@ os.environ["KIVY_GL_BACKEND"] = "gl"
 
 locker = 1
 correct_code = '123456'
-template = "http://127.0.0.1:5000/%s/%s" #API website link to enter
+url_access = "https://dvic.devinci.fr/badge/access/%s/%s" #API website link to enter
+url_associate = "https://dvic.devinci.fr/badge/associate/%s"
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
@@ -41,7 +43,7 @@ ScreenManager:
         pos_hint: {"center_x":0.75,"center_y":0.9}
         
     MDFillRoundFlatButton:
-        text:'CODE PIN'
+        text:'PIN CODE'
         font_size:36
         pos_hint:{"center_x":0.5,"center_y":0.1}
         on_press: root.manager.current='code PIN'
@@ -220,6 +222,12 @@ ScreenManager:
             text_color: 1,1,1,1
             padding: (10,10)
             pos_hint:{"center_x":0.5,"center_y":0.57}
+
+        MDFillRoundFlatButton:
+        text:'ASSOCIATE'
+        font_size:36
+        pos_hint:{"center_x":0.5,"center_y":0.1}
+        on_press: root.manager.current='associate'
         
         MDIconButton:
             icon: 'shield-lock'
@@ -227,6 +235,28 @@ ScreenManager:
             theme_text_color: "Custom"
             text_color: 1,1,1,1
             pos_hint: {"center_x":0.5,"center_y":0.43}
+<AssociateScreen>:
+    name: 'associate'
+    MDFloatLayout:
+        md_bg_color: 1,1,1,1
+
+        Image:
+        source: 'associate_qr_code.png'
+        size_hint: (0.4,0.4)
+        pos_hint: {"center_x":0.5,"center_y":0.5}
+
+        MDLabel:
+            text:'Scannez le QR CODE en étant connecté sur le site du DVIC'
+            halign:'center'
+            font_style:'H3'
+            padding: (10,10)
+            pos_hint:{"center_x":0.5,"center_y":0.8}
+
+        MDIconButton:
+        icon: 'chevron-left'
+        user_font_size: "110sp"
+        pos_hint: {"center_x":0.12,"center_y":0.9}
+        on_press : root.manager.current='home'
 <ConnectionFailedScreen>:
     name: 'connectionFailed'
     MDFloatLayout:
@@ -258,8 +288,12 @@ def change_screen(self,screen_name):
 
 class HomeScreen(Screen):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.MIFAREReader = MFRC522.MFRC522()
+    
     def readNFC(self,dt):
-        MIFAREReader = MFRC522.MFRC522()
+        MIFAREReader = self.MIFAREReader
 
         (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
 
@@ -268,7 +302,7 @@ class HomeScreen(Screen):
         if status == MIFAREReader.MI_OK:
             badge= str(uid[0])+str(uid[1])+str(uid[2])+str(uid[3])
             try:
-                response = requests.get(template % (badge,locker)).status_code
+                response = requests.get(url_access % (badge,locker)).status_code
                 if (response ==200):
                     GPIO.output(7,1)
                     change_screen(self,'open')
@@ -278,6 +312,9 @@ class HomeScreen(Screen):
                     change_screen(self, 'unknown')
             except ConnectionError:
                 change_screen(self,'connectionFailed')
+
+            img = qrcode.make(url_associate % (badge))
+            img.save("associate_qr_code.png")
 
     def on_enter(self, *args):
         Clock.schedule_interval(self.readNFC, 1)
@@ -341,6 +378,11 @@ class LockerUnknownScreen(Screen):
 
     def callbackfun(self, dt):
         self.manager.current = 'home'
+
+    pass
+
+class AssociateScreen(Screen):
+
     
     pass
 
@@ -360,6 +402,7 @@ sm.add_widget(PinCodeScreen(name='code PIN'))
 sm.add_widget(LockerOpenScreen(name='open'))
 sm.add_widget(LockerUnauthorizedScreen(name='unauthorized'))
 sm.add_widget(LockerUnknownScreen(name='unknown'))
+sm.add_widget(AssociateScreen(name='associate'))
 sm.add_widget(ConnectionFailedScreen(name='connectionFailed'))
 
 class MainApp(MDApp):
