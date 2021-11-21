@@ -26,7 +26,7 @@ The main goals of this project are :
 
 Here is a picture that illustrate the Cable Management of the entire system : 
 <p align="center">
-  <img src=https://github.com/DeVinci-Innovation-Center/SMART-LOCK/blob/main/Cable_Management.png?raw=true "Cable Management of Smart Lock System">
+  <img src=https://github.com/DeVinci-Innovation-Center/SMART-LOCK/blob/main/images/Cable_management.png?raw=true "Cable Management of Smart Lock System">
 </p>
 For a proper finishing stage and to prevent from unexpected disconection, it is important to use a 40 pins IDE Cable and pluging it into the raspberry pi. This imply to solder cables into pins headers to connect them in the other components (RC522 and relay).
 
