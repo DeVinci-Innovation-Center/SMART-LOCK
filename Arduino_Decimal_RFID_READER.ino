@@ -1,3 +1,5 @@
+//ARDUINO CODE TO READ A RFID CARD FROM RC522 AND DISPLAY IT ON A LCD SCREEN
+
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal.h>
