@@ -36,7 +36,7 @@ ScreenManager:
     name: 'home'
     
     Image:
-        source: 'dvic_logo.png'
+        source: 'images/dvic_logo.png'
         size_hint: (0.4,0.4)
         pos_hint: {"center_x":0.75,"center_y":0.9}
         
