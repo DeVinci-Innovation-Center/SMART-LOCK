@@ -15,8 +15,6 @@ os.environ["KIVY_WINDOW"] = "egl_rpi"
 os.environ["KIVY_GL_BACKEND"] = "gl"
 
 correct_code = '123456'
-louis = 23119016145
-maxime = 166126147227
 valid = 153202119233
 unauthorized = 2493256233
 connectionfailed = 169164184176
@@ -39,7 +37,7 @@ ScreenManager:
     name: 'home'
     
     Image:
-        source: 'dvic_logo.png'
+        source: 'images/dvic_logo.png'
         size_hint: (0.4,0.4)
         pos_hint: {"center_x":0.75,"center_y":0.9}
         
